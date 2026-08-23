@@ -2,13 +2,16 @@ package main
 
 import (
 	"file_deduplicator/logger"
+	"file_deduplicator/config"
 	"fmt"
 	"log/slog"
 )
 
 func main() {
 	
-	file, err := logger.Init()
+	cnf := config.Load("config.yaml")
+
+	file, err := logger.Init(&cnf.LogSettings.Directory, &cnf.LogSettings.Level)
 	if err != nil {
 		fmt.Println("Ошибка формирования логов")
 	}

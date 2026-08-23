@@ -7,6 +7,8 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"strings"
+	"path/filepath"
 )
 
 
@@ -76,18 +78,45 @@ func LevelToString(level slog.Level) string {
 
 }
 
-func Init() (*os.File, error) {
+func StringToLevel(lvlstring *string) slog.Level {
 
-	err := os.Mkdir("logs", 0755)
+	lvlstr := strings.ToLower(strings.TrimSpace(strings.Clone(*lvlstring)))
+
+	var level slog.Level
+
+	switch lvlstr {
+	case "debug":
+		level = slog.LevelDebug
+	case "info":
+		level = slog.LevelInfo
+	case "error":
+		level = slog.LevelError
+	case "warn":
+		level = slog.LevelWarn
+	default:
+		level = slog.LevelInfo
+	}
+
+	return level
+
+}
+
+func Init(path, lvlstring *string) (*os.File, error) {
+
+	err := os.Mkdir(*path, 0755)
 	if err != nil{}
 
-	file, err := os.OpenFile("logs/file_dd.log", os.O_CREATE|os.O_APPEND, 0666)
+	fullpath := filepath.Join(*path, "file_dd.log")
+
+	file, err := os.OpenFile(fullpath, os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return  nil, err
 	}
 
+	level := StringToLevel(lvlstring)
+
 	mlWriter := io.MultiWriter(os.Stdout, file)
-	dubHandler := New(mlWriter, slog.LevelDebug)
+	dubHandler := New(mlWriter, level)
 
 	logger := slog.New(dubHandler)
 	slog.SetDefault(logger)
