@@ -14,3 +14,9 @@ type FoundFile struct {
 	Hash string `json:"hash"`
 	Path string `json:"path"`
 }
+
+type ParamsWorker struct {
+	Path 			string 
+	IsSaved 		bool
+	UsRecurSeach 	bool
+}
