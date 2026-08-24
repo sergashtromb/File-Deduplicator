@@ -18,37 +18,37 @@ type WalkerManager struct {
 	QuantGr 	int16
 	QueueGr 	chan string
 	SearchAgent domain.SearchAgent
-	WaitG 		sync.WaitGroup
 }
 
-func New(limit int16, sa domain.SearchAgent) *WalkerManager {
+func New(limit int16, sa domain.SearchAgent, qg chan string) *WalkerManager {
 	return &WalkerManager{
 		QuantGr: limit,
-		QueueGr: make(chan string, 1000),
-		WaitG: sync.WaitGroup{},
+		QueueGr: qg,
 		SearchAgent: sa,
 	}
 }
 
-func (wm *WalkerManager) StartGorutinesFindDuble(ctx context.Context) {
+func (wm *WalkerManager) StartGorutinesFindDuble(ctx context.Context, wg *sync.WaitGroup) {
 
 	for i := 0; int16(i) < wm.QuantGr; i++ {
 
-		wm.WaitG.Add(1)
+		wg.Add(1)
 
 		go func() {
 			// при завершении говорим о том что горутина выполнилась
-			defer wm.WaitG.Done()
+			defer wg.Done()
 
 			// бесконечный цикл чтения канала
 			for {
 				select {
 				// считываем значения с канала
 				case path, ok := <-wm.QueueGr:
-
-					if !ok {
+					
+					if ok == false {
+						fmt.Println("DEAD")
 						return
 					}
+					
 					fmt.Println(path)
 				// завершаем при остановке
 				case <-ctx.Done():

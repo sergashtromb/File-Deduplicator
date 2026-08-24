@@ -13,23 +13,23 @@ import (
 )
 
 type SearchAgent struct {
-	WaitG sync.WaitGroup
+	QueueGr chan string
 }
 
 func New() *SearchAgent {
 	return &SearchAgent{
-		WaitG: sync.WaitGroup{},
+		QueueGr: make(chan string),
 	}
 }
 
-func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.ParamsWorker, chPaths chan string) {
+func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.ParamsWorker, wg *sync.WaitGroup) {
 
-	sa.WaitG.Add(1)
+	wg.Add(1)
 
 	go func() {
-
-		defer sa.WaitG.Done()
-		defer close(chPaths)
+		// TODO добавить учет контекста
+		defer wg.Done()
+		defer close(sa.QueueGr)
 
 		if params.UsRecurSeach {
 
@@ -41,7 +41,7 @@ func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.Para
 				}
 
 				if d.IsDir() {					
-					chPaths <- path
+					sa.QueueGr <- path
 				}
 
 				return nil
@@ -56,24 +56,15 @@ func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.Para
 		} else {
 
 			dirs, err := os.ReadDir(params.Path)
-
 			if err != nil {
 				slog.Error("Ошибка чтения директории")
 				return
 			}
 
 			for _, val := range dirs {
-
-				chPaths <- filepath.Join(params.Path, val.Name())
-
+				sa.QueueGr <- filepath.Join(params.Path, val.Name())
 			}
 
-		}
-
-		select {
-		case <- ctx.Done():
-			slog.Debug("Завершение работы поиска папок")
-			return
 		}
 
 	}()

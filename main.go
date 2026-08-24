@@ -9,6 +9,7 @@ import (
 	"file_deduplicator/logger"
 	"fmt"
 	"log/slog"
+	"sync"
 
 	//"log/slog"
 	"os"
@@ -35,16 +36,15 @@ func main() {
 	}
 	defer file.Close()
 
-	chPaths := make(chan string, 1000)
+	var wg sync.WaitGroup
 
 	searchAgent := search_agent.New()
-	searchAgent.FinderDirectories(ctx, params, chPaths)
+	walkerManager := walker_manager.New(10, searchAgent, searchAgent.QueueGr)
 
-	walkerManager := walker_manager.New(10, searchAgent)
-	walkerManager.StartGorutinesFindDuble(ctx)
+	walkerManager.StartGorutinesFindDuble(ctx, &wg)
+	searchAgent.FinderDirectories(ctx, params, &wg)
 	
-	searchAgent.WaitG.Wait()
-	walkerManager.WaitG.Wait()
+	wg.Wait()
 
 
 }
