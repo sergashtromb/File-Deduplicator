@@ -35,7 +35,7 @@ func (wm *WalkerManager) StartGorutinesFindDuble(ctx context.Context, wg *sync.W
 		
 			// бесконечный цикл чтения канала
 			for {
-				
+
 				select {
 				// считываем значения с канала
 				case path, ok := <-wm.QueueGr:
@@ -48,7 +48,7 @@ func (wm *WalkerManager) StartGorutinesFindDuble(ctx context.Context, wg *sync.W
 				
 				case <-ctx.Done():
 					
-					slog.Debug("Завершаем поиск!")
+					slog.Debug("Finish search!")
 					return
 
 				}

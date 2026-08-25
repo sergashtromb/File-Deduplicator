@@ -24,7 +24,7 @@ func Load(configName string) *Config {
 	data, err := ioutil.ReadFile(configName)
 	if err != nil {
 
-		fmt.Println("Ошибка загрузки настроек")
+		fmt.Println("Error settings load")
 
 		cnf := createDefault()
 		return &cnf
@@ -33,7 +33,7 @@ func Load(configName string) *Config {
 	var cnf Config
 	err = yaml.Unmarshal(data, &cnf)
 	if err != nil {
-		fmt.Println("Ошибка анмаршала yaml файла")
+		fmt.Println("Error Unmarshal yaml's file")
 		cnf = createDefault()
 		return &cnf
 	}

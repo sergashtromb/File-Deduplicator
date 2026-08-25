@@ -5,7 +5,8 @@ package domain
 
 
 type Duplicate struct {
-	Id 		int16 			`json:"id"`
+	Hash 	[]byte 			`json:"hash"`
+	Size 	int64 			`json:"size"`
 	Files 	[]*FoundFile 	`json:"files"`
 }
 

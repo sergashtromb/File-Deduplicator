@@ -15,14 +15,16 @@ import (
 )
 
 type SearchAgent struct {
-	QueueGr chan string
-	fileStore domain.FileStore
+	QueueGr 	chan string
+	fileStore 	domain.FileStore
+	dedupStore 	domain.DeduplicateStore
 }
 
-func New(fs domain.FileStore) *SearchAgent {
+func New(fs domain.FileStore, ds domain.DeduplicateStore) *SearchAgent {
 	return &SearchAgent{
 		QueueGr: make(chan string),
 		fileStore: fs,
+		dedupStore: ds,
 	}
 }
 
@@ -37,7 +39,7 @@ func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.Para
 			err := filepath.WalkDir(params.Path, func(path string, d fs.DirEntry, err error) error {
 
 				if err != nil {
-					slog.Error("Ошибка рекурсивного обхода директории")
+					slog.Error("Error recursivy directory traversal")
 					return err
 				}
 
@@ -50,7 +52,7 @@ func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.Para
 			})
 
 			if err != nil {
-				slog.Error("Ошибка чтения директории")
+				slog.Error("Error directory read", "err", err)
 				return
 			}
 
@@ -58,7 +60,7 @@ func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.Para
 
 			dirs, err := os.ReadDir(params.Path)
 			if err != nil {
-				slog.Error("Ошибка чтения директории")
+				slog.Error("Error directory read", "err", err)
 				return
 			}
 
@@ -79,7 +81,7 @@ func (sa *SearchAgent) FinderFiles(path string) {
 
 	vals, err := os.ReadDir(path)
 	if err != nil {
-		slog.Error("Ошибка считывания файлов из директории")
+		slog.Error("Error file read from directory", "err", err)
 		return
 	}
 
@@ -92,7 +94,7 @@ func (sa *SearchAgent) FinderFiles(path string) {
 		name := val.Name()
 		f_info, err := val.Info()
 		if err != nil {
-			slog.Error("Ошибка считывания Info() файла")
+			slog.Error("Error use Info()", "err", err)
 			continue
 		}
 
@@ -103,12 +105,12 @@ func (sa *SearchAgent) FinderFiles(path string) {
 
 		file, err := os.Open(f_path)
 		if err != nil {
-			slog.Error("Ошибка открытия файла")
+			slog.Error("Error file open", "err", err)
 			continue
 		}
 
 		if _, err := io.Copy(hasher, file); err != nil {
-			slog.Error("Ошибка вычисления хеша")
+			slog.Error("Error hash calculation")
 			file.Close()
 			continue	
 		}
@@ -116,11 +118,21 @@ func (sa *SearchAgent) FinderFiles(path string) {
 
 		hashsum := hasher.Sum(nil)
 
-		ff := sa.fileStore.GetBySizeAndHash(f_size, hashsum)
-		if ff != nil {
-			slog.Debug("Найден дубль!", "dub", name)
-		} else {
-			sa.fileStore.Add(name, f_path, hashsum, f_size)
+		new_ff := sa.fileStore.Add(name, f_path, hashsum, f_size)
+		ff := sa.fileStore.GetBySizeAndHash(new_ff.Size, new_ff.Hash)
+
+		if ff != nil && new_ff != ff {
+			dup := sa.dedupStore.GetByHashAndSize(hashsum, f_size)
+
+			if dup == nil {
+				arr_ff := []*domain.FoundFile{new_ff, ff}
+				_ = sa.dedupStore.Add(hashsum, f_size, arr_ff)
+
+			} else {
+				sa.dedupStore.AddFoundFile(dup, new_ff)
+
+			}
+
 		}
 		
 

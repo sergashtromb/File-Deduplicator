@@ -5,7 +5,6 @@ package stores
 import (
 	"bytes"
 	"file_deduplicator/domain"
-	"log/slog"
 	"sync"
 )
 
@@ -37,7 +36,7 @@ func (fs *FileStore) GetBySizeAndHash(size int64, hash []byte) *domain.FoundFile
 
 }
 
-func (fs *FileStore) Add(name, path string, hash []byte, size int64) {
+func (fs *FileStore) Add(name, path string, hash []byte, size int64) *domain.FoundFile {
 
 	fs.rm.Lock()
 	defer fs.rm.Unlock()
@@ -51,6 +50,6 @@ func (fs *FileStore) Add(name, path string, hash []byte, size int64) {
 
 	fs.filesData = append(fs.filesData, &ff)
 	
-	slog.Debug("Добавлен новый элемент Колво элементов", "len", len(fs.filesData))
-	
+	return &ff
+
 }

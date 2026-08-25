@@ -22,5 +22,12 @@ type SearchAgent interface {
 
 type FileStore interface {
 	GetBySizeAndHash(size int64, hash []byte) *FoundFile
-	Add(name, path string, hash []byte, size int64)
+	Add(name, path string, hash []byte, size int64) *FoundFile
+}
+
+type DeduplicateStore interface {
+	GetByHashAndSize(hash []byte, size int64) *Duplicate
+	Add(hash []byte, size int64, ff []*FoundFile) *Duplicate
+	AddFoundFile(dup *Duplicate, ff *FoundFile)
+	GetJSONData() string
 }

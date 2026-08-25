@@ -24,28 +24,31 @@ func main() {
 	_, err := os.Stat(params.Path)
 
 	if err != nil {
-		slog.Error("Такого пути не существует")
+		slog.Error("Don't find this path")
 	}
 
 	cnf := config.Load("config.yaml")
 
 	file, err := logger.Init(&cnf.LogSettings.Directory, &cnf.LogSettings.Level)
 	if err != nil {
-		fmt.Println("Ошибка формирования логов")
+		fmt.Println("Error log initialisation")
 	}
 	defer file.Close()
 
 	var wg sync.WaitGroup
 
 	fileStore := stores.NewFileStore()
+	dedupStore := stores.NewDeduplicateStore()
 
-	searchAgent := search_agent.New(fileStore)
+	searchAgent := search_agent.New(fileStore, dedupStore)
 	walkerManager := walker_manager.New(10, searchAgent, searchAgent.QueueGr)
 
 	walkerManager.StartGorutinesFindDuble(ctx, &wg)
 	searchAgent.FinderDirectories(ctx, params, &wg)
 
 	wg.Wait()
+
+	fmt.Println(dedupStore.GetJSONData())
 
 }
 
