@@ -3,9 +3,10 @@
 package stores
 
 import (
-	"file_deduplicator/domain"
-	"sync"
 	"bytes"
+	"file_deduplicator/domain"
+	"log/slog"
+	"sync"
 )
 
 type FileStore struct {
@@ -50,5 +51,6 @@ func (fs *FileStore) Add(name, path string, hash []byte, size int64) {
 
 	fs.filesData = append(fs.filesData, &ff)
 	
-
+	slog.Debug("Добавлен новый элемент Колво элементов", "len", len(fs.filesData))
+	
 }

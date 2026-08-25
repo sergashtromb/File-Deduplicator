@@ -7,7 +7,6 @@ import (
 	"file_deduplicator/initial/stores"
 	"file_deduplicator/initial/walker_manager"
 	"file_deduplicator/logger"
-
 	"context"
 	"fmt"
 	"log/slog"
@@ -36,18 +35,17 @@ func main() {
 	}
 	defer file.Close()
 
-	fileStore := stores.NewFileStore()
-
 	var wg sync.WaitGroup
+
+	fileStore := stores.NewFileStore()
 
 	searchAgent := search_agent.New(fileStore)
 	walkerManager := walker_manager.New(10, searchAgent, searchAgent.QueueGr)
 
 	walkerManager.StartGorutinesFindDuble(ctx, &wg)
 	searchAgent.FinderDirectories(ctx, params, &wg)
-	
-	wg.Wait()
 
+	wg.Wait()
 
 }
 
@@ -60,7 +58,6 @@ func parseParamsWorker(args []string) *domain.ParamsWorker {
 	}
 
 	for _, val := range args {
-
 		switch val {
 		case "-s":
 			defParams.IsSaved = true
@@ -68,9 +65,7 @@ func parseParamsWorker(args []string) *domain.ParamsWorker {
 			defParams.UsRecurSeach = true
 		default:
 			defParams.Path = val
-
 		}
-
 	}
 
 	return &defParams

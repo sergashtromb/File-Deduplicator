@@ -28,11 +28,8 @@ func New(fs domain.FileStore) *SearchAgent {
 
 func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.ParamsWorker, wg *sync.WaitGroup) {
 
-	wg.Add(1)
+	wg.Go(func() {
 
-	go func() {
-		// TODO добавить учет контекста
-		defer wg.Done()
 		defer close(sa.QueueGr)
 
 		if params.UsRecurSeach {
@@ -75,7 +72,7 @@ func (sa *SearchAgent)FinderDirectories(ctx context.Context, params *domain.Para
 
 		}
 
-	}()
+	})
 }
 
 func (sa *SearchAgent) FinderFiles(path string) {
@@ -121,7 +118,7 @@ func (sa *SearchAgent) FinderFiles(path string) {
 
 		ff := sa.fileStore.GetBySizeAndHash(f_size, hashsum)
 		if ff != nil {
-			slog.Debug("Найден дубль!")
+			slog.Debug("Найден дубль!", "dub", name)
 		} else {
 			sa.fileStore.Add(name, f_path, hashsum, f_size)
 		}

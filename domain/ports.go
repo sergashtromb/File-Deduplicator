@@ -8,7 +8,7 @@ import (
 )
 
 // описание менеджера
-//	StartGorutines - считывает канал очереди и запускает горутину если лимиты позволяют, завершает работу если канал закроется
+//	StartGorutinesFindDuble - считывает канал очереди и запускает горутину если лимиты позволяют, завершает работу если канал закроется
 //	AddInQueueGr - добавляет запись в канал очереди.
 type WalkerManager interface {
 	StartGorutinesFindDuble(ctx context.Context, wg *sync.WaitGroup)
@@ -16,7 +16,6 @@ type WalkerManager interface {
 }
 
 type SearchAgent interface {
-	//LoadFilesData(path string)
 	FinderDirectories(ctx context.Context, params *ParamsWorker, wg *sync.WaitGroup)
 	FinderFiles(path string)
 }

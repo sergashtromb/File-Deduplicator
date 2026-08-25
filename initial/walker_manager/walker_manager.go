@@ -5,7 +5,6 @@ package walker_manager
 import (
 	"context"
 	"file_deduplicator/domain"
-	"fmt"
 	"log/slog"
 	"sync"
 )
@@ -32,14 +31,11 @@ func (wm *WalkerManager) StartGorutinesFindDuble(ctx context.Context, wg *sync.W
 
 	for i := 0; int16(i) < wm.QuantGr; i++ {
 
-		wg.Add(1)
-
-		go func() {
-			// при завершении говорим о том что горутина выполнилась
-			defer wg.Done()
-
+		wg.Go(func() {
+		
 			// бесконечный цикл чтения канала
 			for {
+				
 				select {
 				// считываем значения с канала
 				case path, ok := <-wm.QueueGr:
@@ -47,8 +43,8 @@ func (wm *WalkerManager) StartGorutinesFindDuble(ctx context.Context, wg *sync.W
 					if !ok {
 						return
 					}
-					// TODO добавить процедуру поиска
-					fmt.Println(path)
+					
+					wm.SearchAgent.FinderFiles(path)
 				
 				case <-ctx.Done():
 					
@@ -58,9 +54,7 @@ func (wm *WalkerManager) StartGorutinesFindDuble(ctx context.Context, wg *sync.W
 				}
 			}
 
-			//wm.SearchAgent.LoadFilesData()
-
-		}()
+		})
 	}
 
 }
