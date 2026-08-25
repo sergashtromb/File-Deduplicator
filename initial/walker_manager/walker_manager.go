@@ -44,13 +44,12 @@ func (wm *WalkerManager) StartGorutinesFindDuble(ctx context.Context, wg *sync.W
 				// считываем значения с канала
 				case path, ok := <-wm.QueueGr:
 					
-					if ok == false {
-						fmt.Println("DEAD")
+					if !ok {
 						return
 					}
-					
+					// TODO добавить процедуру поиска
 					fmt.Println(path)
-				// завершаем при остановке
+				
 				case <-ctx.Done():
 					
 					slog.Debug("Завершаем поиск!")

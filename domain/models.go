@@ -11,8 +11,9 @@ type Duplicate struct {
 
 type FoundFile struct {
 	Name string `json:"name"`
-	Hash string `json:"hash"`
+	Hash []byte `json:"hash"`
 	Path string `json:"path"`
+	Size int64 	`json:"size"`
 }
 
 type ParamsWorker struct {
