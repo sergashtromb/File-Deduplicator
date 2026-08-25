@@ -11,7 +11,8 @@ import (
 
 
 type Config struct {
-	LogSettings LogSettings `yaml:"log_settings"`
+	LogSettings 	LogSettings `yaml:"log_settings"`
+	ReportSavePath 	string 		`yaml:"report_save_path"`
 }
 
 type LogSettings struct {
@@ -34,6 +35,7 @@ func Load(configName string) *Config {
 	err = yaml.Unmarshal(data, &cnf)
 	if err != nil {
 		fmt.Println("Error Unmarshal yaml's file")
+		fmt.Println(err)
 		cnf = createDefault()
 		return &cnf
 	}
@@ -47,6 +49,7 @@ func createDefault() Config {
 			Directory: "logs",
 			Level: "debug",
 		},
+		ReportSavePath: "",
 	}
 }
 

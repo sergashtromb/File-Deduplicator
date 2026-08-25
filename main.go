@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"file_deduplicator/config"
 	"file_deduplicator/domain"
+	"file_deduplicator/initial/report"
 	"file_deduplicator/initial/search_agent"
 	"file_deduplicator/initial/stores"
 	"file_deduplicator/initial/walker_manager"
 	"file_deduplicator/logger"
-	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -48,7 +49,7 @@ func main() {
 
 	wg.Wait()
 
-	fmt.Println(dedupStore.GetJSONData())
+	report.Report(dedupStore.GetJSONData(), params.IsSaved, cnf.ReportSavePath)
 
 }
 
