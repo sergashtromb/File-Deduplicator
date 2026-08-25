@@ -4,17 +4,18 @@ package logger
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
-	"strings"
 	"path/filepath"
+	"strings"
 )
 
 
 type DubleHandler struct {
-	level slog.Leveler
-	out io.Writer
+	level 	slog.Leveler
+	out 	io.Writer
 }
 
 
@@ -40,8 +41,14 @@ func (h *DubleHandler) Handle(ctx context.Context, r slog.Record) error {
 	buf = append(buf, []byte(r.Time.Format("2006-01-02 15:04:05"))...)
 	buf = append(buf, byte(' '))
 	buf = append(buf, []byte(r.Message)...)
-	buf = append(buf, byte('\n'))
 
+	r.Attrs(func(a slog.Attr) bool {
+		buf = fmt.Appendf(buf, " %s=%v ", a.Key, a.Value)
+		return true
+	})
+
+	buf = append(buf, byte('\n'))
+	
 	_, err := h.out.Write(buf)
 
 	return err

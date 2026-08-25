@@ -1,18 +1,18 @@
 package main
 
 import (
-	"context"
 	"file_deduplicator/config"
 	"file_deduplicator/domain"
 	"file_deduplicator/initial/search_agent"
+	"file_deduplicator/initial/stores"
 	"file_deduplicator/initial/walker_manager"
 	"file_deduplicator/logger"
+
+	"context"
 	"fmt"
 	"log/slog"
-	"sync"
-
-	//"log/slog"
 	"os"
+	"sync"
 )
 
 func main() {
@@ -36,9 +36,11 @@ func main() {
 	}
 	defer file.Close()
 
+	fileStore := stores.NewFileStore()
+
 	var wg sync.WaitGroup
 
-	searchAgent := search_agent.New()
+	searchAgent := search_agent.New(fileStore)
 	walkerManager := walker_manager.New(10, searchAgent, searchAgent.QueueGr)
 
 	walkerManager.StartGorutinesFindDuble(ctx, &wg)
