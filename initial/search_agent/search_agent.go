@@ -103,7 +103,7 @@ func (sa *SearchAgent) FinderFiles(path string) {
 
 		hasher := sha256.New()
 
-		file, err := os.Open(f_path)
+		file, err := os.OpenFile(f_path, os.O_RDONLY, 0444)
 		if err != nil {
 			slog.Error("Error file open", "err", err)
 			continue

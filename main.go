@@ -12,11 +12,17 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"runtime"
+	"runtime/pprof"
 	"sync"
 )
 
 func main() {
 	
+	f, _ := os.Create("cpu2.prof")
+	pprof.StartCPUProfile(f)
+	defer pprof.StopCPUProfile()
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -50,6 +56,10 @@ func main() {
 	wg.Wait()
 
 	report.Report(dedupStore.GetJSONData(), params.IsSaved, cnf.ReportSavePath)
+
+	memFile, _ := os.Create("mem.prof")
+	runtime.GC()
+	pprof.Lookup("heap").WriteTo(memFile, 0)
 
 }
 
